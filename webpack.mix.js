@@ -11,7 +11,7 @@ const { min } = require('lodash');
  | file for the application as well as bundling up all the JS files.
  |
  */
-
+ 
 
 mix.styles([
    'resources/assets/admin/bootstrap/css/bootstrap.min.css',
