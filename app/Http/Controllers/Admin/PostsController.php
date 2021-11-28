@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\User;
+use App\Tag;
+use App\Post;
+use App\Category;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 
-class UsersController extends Controller
+class PostsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,8 +17,9 @@ class UsersController extends Controller
      */
     public function index()
     {
-        $users = User::all();
-        return view('admin.users.index', ['users' => $users]);
+
+        $posts = Post::all();
+        return view('admin.posts.index', 'posts'=$posts);
     }
 
     /**
@@ -26,8 +28,11 @@ class UsersController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create()
-    {
-        return view('admin.users.create');
+    {   
+        $categories = Category::pluck('title', 'id')->all();
+        $tags = Tag::pluck('title', 'id')->all();
+
+        return view('admin.posts.create', compact('categories', 'tags'));
     }
 
     /**
@@ -39,19 +44,32 @@ class UsersController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required',
-            'avatar' => 'nullable|image'
+            'title' => 'required',
+            'content' => 'required',
+            'date' => 'required',
+            'image' => 'nullable|image'
         ]);
 
-        $user = User::add($request->all());
-        $user->generatePassword($request->get('password'));
-        $user->uploadAvatar($request->file('avatar'));
+        $post = Post::add($request->all());
+        $post->uploadImage($request->file('image'));
+        $post->setCategory($request->get('category_id'));
+        $post->setTags($request->get('tags'));
+        $post->toggleStatus($request->get('status'));
+        $post->toggleFeatured($request->get('is_featured'));
 
-        return redirect()->route('users.index');
+        return redirect()->route('posts.index');
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -61,8 +79,7 @@ class UsersController extends Controller
      */
     public function edit($id)
     {
-        $user = User::find($id);
-        return view('admin.users.edit', compact('user'));
+        //
     }
 
     /**
@@ -74,25 +91,7 @@ class UsersController extends Controller
      */
     public function update(Request $request, $id)
     {
-
-        $user = User::find($id);
-
-        $this->validate($request, [
-            'name' => 'required',
-            'email' => [
-                'required',
-                'email',
-                Rule::unique('users')->ignore($user->id),
-
-            ],
-            'avatar' => 'nullable|image'
-        ]);
-
-        $user->edit($request->all());
-        $user->generatePassword($request->get('password'));
-        $user->uploadAvatar($request->file('avatar'));
-
-        return redirect()->route('users.index');
+        //
     }
 
     /**
@@ -103,8 +102,6 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        User::find($id)->remove();
-
-        return redirect()->route('users.index');
+        //
     }
 }
